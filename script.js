@@ -2,20 +2,24 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const startGameBtn = document.getElementById('startGameBtn');
 const difficultyButtons = document.querySelectorAll('.difficulty-btn');
-const touchZone = document.getElementById('touchZone');
+const joystick = document.getElementById('joystick');
+const stick = document.getElementById('stick');
 
 canvas.width = 400;
 canvas.height = 400;
 
 const gridSize = 20;
-const snakeRadius = gridSize / 2;
 let snake = [{ x: 200, y: 200 }];
 let food = randomFoodPosition();
 let direction = { x: 1, y: 0 };
 let nextDirection = direction;
 let score = 0;
-let gameSpeed = 100; // Default speed for "Normal"
-let gameRunning = false; // Prevent the game from starting automatically
+let gameSpeed = 100;
+let gameRunning = false;
+
+// Movement tracking
+let joystickOffset = { x: 0, y: 0 };
+let isDragging = false;
 
 // Draw game elements
 function draw() {
@@ -25,16 +29,12 @@ function draw() {
   // Draw snake
   ctx.fillStyle = '#0f0';
   snake.forEach(segment => {
-    ctx.beginPath();
-    ctx.arc(segment.x + snakeRadius, segment.y + snakeRadius, snakeRadius, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.fillRect(segment.x, segment.y, gridSize, gridSize);
   });
 
   // Draw food
   ctx.fillStyle = '#f00';
-  ctx.beginPath();
-  ctx.arc(food.x + snakeRadius, food.y + snakeRadius, snakeRadius, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.fillRect(food.x, food.y, gridSize, gridSize);
 
   // Draw score
   ctx.fillStyle = '#fff';
@@ -47,7 +47,6 @@ function update() {
   if (direction.x !== 0 || direction.y !== 0) {
     const head = { x: snake[0].x + direction.x * gridSize, y: snake[0].y + direction.y * gridSize };
 
-    // Check for collision with walls or self
     if (
       head.x < 0 || head.y < 0 ||
       head.x >= canvas.width || head.y >= canvas.height ||
@@ -60,7 +59,6 @@ function update() {
 
     snake.unshift(head);
 
-    // Check if food is eaten
     if (head.x === food.x && head.y === food.y) {
       score++;
       food = randomFoodPosition();
@@ -81,41 +79,50 @@ window.addEventListener('keydown', e => {
 
   const newDirection = keyMap[e.key];
   if (newDirection) {
-    // Prevent snake from reversing on itself
     if (direction.x + newDirection.x !== 0 || direction.y + newDirection.y !== 0) {
       nextDirection = newDirection;
     }
   }
 });
 
-// Handle touch input
-let touchStartX = 0;
-let touchStartY = 0;
-let touchEndX = 0;
-let touchEndY = 0;
+// Handle joystick input
+joystick.addEventListener('touchstart', startDrag);
+joystick.addEventListener('touchmove', drag);
+joystick.addEventListener('touchend', stopDrag);
 
-touchZone.addEventListener('touchstart', e => {
-  touchStartX = e.touches[0].clientX;
-  touchStartY = e.touches[0].clientY;
-});
+function startDrag(e) {
+  isDragging = true;
+  const rect = joystick.getBoundingClientRect();
+  joystickOffset = {
+    x: e.touches[0].clientX - rect.left - rect.width / 2,
+    y: e.touches[0].clientY - rect.top - rect.height / 2
+  };
+}
 
-touchZone.addEventListener('touchmove', e => {
-  touchEndX = e.touches[0].clientX;
-  touchEndY = e.touches[0].clientY;
-});
+function drag(e) {
+  if (isDragging) {
+    const rect = joystick.getBoundingClientRect();
+    const x = e.touches[0].clientX - rect.left - rect.width / 2;
+    const y = e.touches[0].clientY - rect.top - rect.height / 2;
 
-touchZone.addEventListener('touchend', () => {
-  const dx = touchEndX - touchStartX;
-  const dy = touchEndY - touchStartY;
+    const distance = Math.sqrt(x ** 2 + y ** 2);
+    const maxDistance = rect.width / 2;
 
-  if (Math.abs(dx) > Math.abs(dy)) {
-    if (dx > 0 && direction.x !== -1) nextDirection = { x: 1, y: 0 }; // Right
-    if (dx < 0 && direction.x !== 1) nextDirection = { x: -1, y: 0 }; // Left
-  } else {
-    if (dy > 0 && direction.y !== -1) nextDirection = { x: 0, y: 1 }; // Down
-    if (dy < 0 && direction.y !== 1) nextDirection = { x: 0, y: -1 }; // Up
+    if (distance <= maxDistance) {
+      stick.style.transform = `translate(${x}px, ${y}px)`;
+      if (Math.abs(x) > Math.abs(y)) {
+        nextDirection = x > 0 ? { x: 1, y: 0 } : { x: -1, y: 0 };
+      } else {
+        nextDirection = y > 0 ? { x: 0, y: 1 } : { x: 0, y: -1 };
+      }
+    }
   }
-});
+}
+
+function stopDrag() {
+  isDragging = false;
+  stick.style.transform = 'translate(0, 0)';
+}
 
 // Random food position
 function randomFoodPosition() {
@@ -128,7 +135,7 @@ function randomFoodPosition() {
 // Reset game
 function resetGame() {
   snake = [{ x: 200, y: 200 }];
-  direction = { x: 1, y: 0 }; // Reset initial direction to right
+  direction = { x: 1, y: 0 };
   nextDirection = direction;
   food = randomFoodPosition();
   score = 0;
