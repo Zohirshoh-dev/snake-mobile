@@ -11,15 +11,22 @@
     <div class="game-container">
       <canvas id="gameCanvas"></canvas>
       <div class="controls">
-        <button class="difficulty-btn" data-speed="200">Easy</button>
-        <button class="difficulty-btn" data-speed="100">Normal</button>
-        <button class="difficulty-btn" data-speed="50">Hard</button>
+        <div class="joystick">
+          <!-- Up and Down arrows in one row -->
+          <div class="vertical-controls">
+            <button class="control-btn" id="up">↑</button>
+            <button class="control-btn" id="down">↓</button>
+          </div>
+
+          <!-- Left and Right arrows in the next row -->
+          <div class="horizontal-controls">
+            <button class="control-btn" id="left">←</button>
+            <button class="control-btn" id="right">→</button>
+          </div>
+        </div>
       </div>
     </div>
     <button id="startGameBtn">Start Game</button>
-    <div id="joystick">
-      <div id="stick"></div>
-    </div>
   </div>
   <script src="script.js"></script>
 </body>

@@ -1,25 +1,23 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const startGameBtn = document.getElementById('startGameBtn');
-const difficultyButtons = document.querySelectorAll('.difficulty-btn');
-const joystick = document.getElementById('joystick');
-const stick = document.getElementById('stick');
+const upBtn = document.getElementById('up');
+const downBtn = document.getElementById('down');
+const leftBtn = document.getElementById('left');
+const rightBtn = document.getElementById('right');
 
 canvas.width = 400;
 canvas.height = 400;
 
 const gridSize = 20;
+const snakeRadius = gridSize / 2;
 let snake = [{ x: 200, y: 200 }];
 let food = randomFoodPosition();
 let direction = { x: 1, y: 0 };
 let nextDirection = direction;
 let score = 0;
-let gameSpeed = 100;
+let gameSpeed = 100; // Default speed for "Normal"
 let gameRunning = false;
-
-// Movement tracking
-let joystickOffset = { x: 0, y: 0 };
-let isDragging = false;
 
 // Draw game elements
 function draw() {
@@ -29,12 +27,16 @@ function draw() {
   // Draw snake
   ctx.fillStyle = '#0f0';
   snake.forEach(segment => {
-    ctx.fillRect(segment.x, segment.y, gridSize, gridSize);
+    ctx.beginPath();
+    ctx.arc(segment.x + snakeRadius, segment.y + snakeRadius, snakeRadius, 0, Math.PI * 2);
+    ctx.fill();
   });
 
   // Draw food
   ctx.fillStyle = '#f00';
-  ctx.fillRect(food.x, food.y, gridSize, gridSize);
+  ctx.beginPath();
+  ctx.arc(food.x + snakeRadius, food.y + snakeRadius, snakeRadius, 0, Math.PI * 2);
+  ctx.fill();
 
   // Draw score
   ctx.fillStyle = '#fff';
@@ -47,6 +49,7 @@ function update() {
   if (direction.x !== 0 || direction.y !== 0) {
     const head = { x: snake[0].x + direction.x * gridSize, y: snake[0].y + direction.y * gridSize };
 
+    // Check for collision with walls or self
     if (
       head.x < 0 || head.y < 0 ||
       head.x >= canvas.width || head.y >= canvas.height ||
@@ -59,6 +62,7 @@ function update() {
 
     snake.unshift(head);
 
+    // Check if food is eaten
     if (head.x === food.x && head.y === food.y) {
       score++;
       food = randomFoodPosition();
@@ -68,61 +72,27 @@ function update() {
   }
 }
 
-// Handle keyboard input
-window.addEventListener('keydown', e => {
-  const keyMap = {
-    ArrowUp: { x: 0, y: -1 },
-    ArrowDown: { x: 0, y: 1 },
-    ArrowLeft: { x: -1, y: 0 },
-    ArrowRight: { x: 1, y: 0 }
-  };
-
-  const newDirection = keyMap[e.key];
-  if (newDirection) {
-    if (direction.x + newDirection.x !== 0 || direction.y + newDirection.y !== 0) {
-      nextDirection = newDirection;
-    }
+// Handle input from mobile controls
+upBtn.addEventListener('click', () => {
+  if (direction.y === 0) {
+    nextDirection = { x: 0, y: -1 };
   }
 });
-
-// Handle joystick input
-joystick.addEventListener('touchstart', startDrag);
-joystick.addEventListener('touchmove', drag);
-joystick.addEventListener('touchend', stopDrag);
-
-function startDrag(e) {
-  isDragging = true;
-  const rect = joystick.getBoundingClientRect();
-  joystickOffset = {
-    x: e.touches[0].clientX - rect.left - rect.width / 2,
-    y: e.touches[0].clientY - rect.top - rect.height / 2
-  };
-}
-
-function drag(e) {
-  if (isDragging) {
-    const rect = joystick.getBoundingClientRect();
-    const x = e.touches[0].clientX - rect.left - rect.width / 2;
-    const y = e.touches[0].clientY - rect.top - rect.height / 2;
-
-    const distance = Math.sqrt(x ** 2 + y ** 2);
-    const maxDistance = rect.width / 2;
-
-    if (distance <= maxDistance) {
-      stick.style.transform = `translate(${x}px, ${y}px)`;
-      if (Math.abs(x) > Math.abs(y)) {
-        nextDirection = x > 0 ? { x: 1, y: 0 } : { x: -1, y: 0 };
-      } else {
-        nextDirection = y > 0 ? { x: 0, y: 1 } : { x: 0, y: -1 };
-      }
-    }
+downBtn.addEventListener('click', () => {
+  if (direction.y === 0) {
+    nextDirection = { x: 0, y: 1 };
   }
-}
-
-function stopDrag() {
-  isDragging = false;
-  stick.style.transform = 'translate(0, 0)';
-}
+});
+leftBtn.addEventListener('click', () => {
+  if (direction.x === 0) {
+    nextDirection = { x: -1, y: 0 };
+  }
+});
+rightBtn.addEventListener('click', () => {
+  if (direction.x === 0) {
+    nextDirection = { x: 1, y: 0 };
+  }
+});
 
 // Random food position
 function randomFoodPosition() {
@@ -140,14 +110,6 @@ function resetGame() {
   food = randomFoodPosition();
   score = 0;
 }
-
-// Difficulty buttons
-difficultyButtons.forEach(button => {
-  button.addEventListener('click', () => {
-    gameSpeed = parseInt(button.dataset.speed);
-    resetGame();
-  });
-});
 
 // Start Game
 startGameBtn.addEventListener('click', () => {

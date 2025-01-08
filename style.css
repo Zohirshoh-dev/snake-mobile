@@ -38,26 +38,52 @@ canvas {
 .controls {
   display: flex;
   flex-direction: column;
+  gap: 20px;
+}
+
+.joystick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 10px;
 }
 
-button {
-  padding: 10px 20px;
-  font-size: 16px;
+/* Layout for the joystick arrows */
+.joystick-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.vertical-controls {
+  display: flex;
+  justify-content: center;
+  gap: 20px; /* Space between up and down arrows */
+}
+
+.horizontal-controls {
+  display: flex;
+  justify-content: center;
+  gap: 20px; /* Space between left and right arrows */
+}
+
+/* Individual control button styles */
+.control-btn {
+  font-size: 30px;
+  padding: 15px;
   background: #333;
   color: #fff;
   border: 1px solid #555;
-  border-radius: 5px;
+  border-radius: 50%;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
 }
 
-button:hover {
+.control-btn:hover {
   background: #444;
-  color: #f0f0f0;
 }
 
-/* Start Game Button */
 #startGameBtn {
   padding: 15px 30px;
   font-size: 18px;
@@ -71,27 +97,4 @@ button:hover {
 
 #startGameBtn:hover {
   background: #0056b3;
-}
-
-/* Joystick Styles */
-#joystick {
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  width: 120px;
-  height: 120px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid #fff;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-#stick {
-  width: 40px;
-  height: 40px;
-  background: #007bff;
-  border-radius: 50%;
-  position: relative;
 }
